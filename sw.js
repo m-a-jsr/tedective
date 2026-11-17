@@ -10,7 +10,9 @@ const LAZY = /^img\/pozadi\/(?!M9\.jpg|D0\.svg)/;
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    await cache.addAll(FILES.filter(f => !LAZY.test(f)));
+    // "reload" bypasses the browser's HTTP cache (GitHub Pages lets it keep files for 10 min),
+    // otherwise a new version could be stored with old files
+    await cache.addAll(FILES.filter(f => !LAZY.test(f)).map(f => new Request(f, { cache: "reload" })));
     await self.skipWaiting();
   })());
 });
