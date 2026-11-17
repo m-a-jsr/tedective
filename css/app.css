@@ -222,3 +222,30 @@ button.small { font-size: 13px; padding: 6px 10px; }
 .general li { padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; gap: 8px; justify-content: space-between; }
 .general li:last-child { border-bottom: none; }
 .general .cat { flex: none; font-size: 12px; color: var(--muted); }
+
+/* collection and numbers */
+.collection, .numbers { max-width: 760px; margin: 0 auto; padding: 12px 16px 40px; display: grid; gap: 10px; }
+.collection .note, .numbers .note { margin: 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.tile { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; background: var(--panel); }
+.tile .avatar, .detail .avatar { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-weight: 600;
+  background: rgba(127, 127, 127, 0.15); color: var(--muted); }
+.tile .name { font-size: 13px; font-weight: 600; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
+.tile .count { font-size: 12px; color: var(--muted); }
+.tile:not(.some):not(.full) .avatar { opacity: .45; }
+.tile.some .count { color: var(--doing-text); }
+.tile.full { border-color: var(--good-line); }
+.tile.full .count { color: var(--good-line); font-weight: 600; }
+.detail[hidden] { display: none; }
+.detail .who-row { display: flex; gap: 12px; align-items: center; }
+.detail h2 { margin: 0; font-size: 17px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.detail .group { font-size: 13px; font-weight: 400; color: var(--muted); }
+.own-quotes .locked { color: var(--muted); font-style: normal; list-style: none; margin-left: -18px; }
+.general-seen { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.number-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+@media (min-width: 560px) { .number-grid { grid-template-columns: repeat(10, 1fr); } }
+.number-grid a { position: relative; display: grid; place-items: center; aspect-ratio: 1; border: 1px solid var(--line);
+  border-radius: 50%; background: var(--panel); text-decoration: none; }
+.number-grid .no { position: absolute; top: -2px; left: 2px; font-size: 10px; color: var(--muted); }
+.number-grid .num { font-size: 18px; font-weight: 700; }
+.number-grid .got a { border: 2px solid var(--good-line); background: var(--good); color: var(--good-text); }

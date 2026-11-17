@@ -84,7 +84,9 @@ export function renderHome(root, app) {
       h("a", { class: "back", href: "#/nastaveni", "aria-label": "Nastavení" }, icon("gear"))),
     h("main", { class: "home" },
       h("nav", { class: "home-nav" },
-        h("a", { class: "button", href: "#/postavy" }, icon("users"), "Postavy a hlášky")),
+        h("a", { class: "button", href: "#/postavy" }, icon("users"), "Postavy a hlášky"),
+        h("a", { class: "button", href: "#/sbirka" }, icon("cards"), "Sbírka"),
+        h("a", { class: "button", href: "#/cisla" }, icon("star"), "Čísla")),
       sections), bookBar);
   document.body.classList.remove("selecting");
 }

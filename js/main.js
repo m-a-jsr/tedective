@@ -6,6 +6,7 @@ import { Sync } from "./data/sync.js";
 import { resolveConflicts } from "./ui/conflicts.js";
 import { h, toast } from "./ui/dom.js";
 import { renderCast } from "./ui/cast.js";
+import { renderCollection, renderNumbers } from "./ui/collection.js";
 import { renderGame } from "./ui/game.js";
 import { renderHome } from "./ui/home.js";
 import { renderSettings } from "./ui/settings.js";
@@ -86,6 +87,8 @@ function route() {
   }
   else if (location.hash === "#/nastaveni") renderSettings(root, app);
   else if (location.hash === "#/postavy") renderCast(root, app);
+  else if (location.hash === "#/sbirka") renderCollection(root, app);
+  else if (location.hash === "#/cisla") renderNumbers(root, app);
   else renderHome(root, app);
   window.scrollTo(0, 0);
 }
