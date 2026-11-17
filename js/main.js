@@ -47,10 +47,13 @@ let leave = null;
 function route() {
   leave?.();
   leave = null;
-  const m = location.hash.match(/^#\/hra\/(.+)$/);
+  const m = location.hash.match(/^#\/hra\/([^?]+)(\?kniha)?$/);
   const puzzle = m && app.content.puzzles.find(p => p.id === m[1]);
   document.body.dataset.screen = puzzle ? "game" : "menu";
-  if (puzzle) leave = renderGame(root, app, puzzle);
+  if (puzzle) {
+    leave = renderGame(root, app, puzzle, { fromBook: !!m[2] });
+    if (m[2]) history.replaceState(null, "", `#/hra/${puzzle.id}`);   // only once, not again on reload
+  }
   else if (location.hash === "#/nastaveni") renderSettings(root, app);
   else renderHome(root, app);
   window.scrollTo(0, 0);

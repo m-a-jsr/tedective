@@ -5,7 +5,8 @@ import { Session, VERDICT } from "../game/session.js";
 import { words } from "../logic/czech.js";
 import { askDialog, capitalize, confirmDialog, fill, formatTime, h, icon, initials, toast } from "./dom.js";
 
-export function renderGame(root, app, puzzle) {
+/** `opts.fromBook`: opened from the list as "in progress in the book", so start picking the last card. */
+export function renderGame(root, app, puzzle, opts = {}) {
   let s = new Session(puzzle, app.progress[puzzle.id]);
   let markMode = false;
   let bookMode = null;   // null | "last" (pick the last card from the book) | "fill" (add other solved cards)
@@ -76,7 +77,8 @@ export function renderGame(root, app, puzzle) {
         ? h("span", { class: "star" }, icon("star", 14), h("span", { class: "num" }, puzzle.number)) : null,
       h("span", { class: "avatar" }, initials(puzzle.names[i])),
       h("span", { class: "name" }, puzzle.names[i]),
-      h("span", { class: "role" }, solved ? words(theme, state).sg : puzzle.roles[i]),
+      h("span", { class: "role" }, puzzle.roles[i]),       // the role stays: statements about roles need it
+      solved ? h("span", { class: "verdict" }, words(theme, state).sg) : null,
       text ? h("span", { class: s.visible(i) ? "text statement" : "text quote" }, text) : null);
   }
 
@@ -204,5 +206,6 @@ export function renderGame(root, app, puzzle) {
   }
 
   draw();
+  if (opts.fromBook && fresh()) startBook();
   return () => { document.removeEventListener("visibilitychange", onVisibility); save(); };   // called when leaving the screen
 }
