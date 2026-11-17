@@ -1,6 +1,8 @@
 // Game screen: the grid of cards, verdicts, marks, two-stage hint, undo, reset,
 // continuing from the paper book, summary.
 
+import { chosen, celebrate } from "./look.js";
+import { meadow, play } from "./sound.js";
 import { Session, VERDICT } from "../game/session.js";
 import { words } from "../logic/czech.js";
 import { askDialog, avatar, capitalize, confirmDialog, fill, formatTime, h, icon, initials, toast } from "./dom.js";
@@ -83,7 +85,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
       h("span", { class: "coord" }, puzzle.grid.label(i)),
       solved && i === puzzle.star && puzzle.number != null
         ? h("span", { class: "star" }, icon("star", 14), h("span", { class: "num" }, puzzle.number)) : null,
-      avatar(puzzle.names[i], app.content.photos),
+      avatar(puzzle.names[i], app.content.photos, puzzle.roles[i]),
       h("span", { class: "name" }, puzzle.names[i]),
       h("span", { class: "role" }, puzzle.roles[i]),       // the role stays: statements about roles need it
       solved ? h("span", { class: "verdict" }, words(theme, state).sg) : null,
@@ -139,9 +141,12 @@ export function renderGame(root, app, puzzle, opts = {}) {
     const r = s.verdict(i, v);
     if (r === VERDICT.OK) {
       if (hint && s.known.has(hint.cell)) hint = null;
+      play(chosen(app).zvuky, s.solved ? "solved" : "ok");
+      if (s.solved && chosen(app).animace === "konfety") celebrate();
       navigator.vibrate?.(15);
     } else if (r === VERDICT.WRONG) {
       toast("Tudy ne – přečti si nápovědy znovu.", "bad");
+      play(chosen(app).zvuky, "wrong");
       navigator.vibrate?.([40, 60, 40]);
     } else {
       toast("Na tohle ještě nemáš dost důkazů.");
@@ -237,5 +242,6 @@ export function renderGame(root, app, puzzle, opts = {}) {
 
   draw();
   if (opts.fromBook && fresh()) startBook();
-  return () => { document.removeEventListener("visibilitychange", onVisibility); save(); };   // called when leaving the screen
+  meadow(chosen(app).zvuky === "louka");
+  return () => { meadow(false); document.removeEventListener("visibilitychange", onVisibility); save(); };   // called when leaving the screen
 }

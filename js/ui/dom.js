@@ -36,6 +36,7 @@ const PATHS = {
   cloudCheck: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.1 9.6 4.2 4.2 0 0 0 7 18zM9.5 13.5l2 2 3.5-4",
   cloudOff: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.1 9.6 4.2 4.2 0 0 0 7 18zM4 4l16 16",
   alert: "M12 4l9 16H3zM12 10v4M12 17h.01",
+  palette: "M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5S14 15 15 15h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8zM7.5 11h.01M10 7h.01M15 7h.01M17.5 11h.01",
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   plus: "M12 5v14M5 12h14",
   cards: "M8 4h11v15H8zM5 7v13h11",
@@ -72,9 +73,12 @@ export function initials(name) {
 }
 
 /** Round picture of a character: the photo if there is one, else initials. */
-export function avatar(name, photos) {
+export function avatar(name, photos, group = "") {
   const src = photos?.get(name);
-  return src ? h("img", { class: "avatar", src, alt: "" }) : h("span", { class: "avatar" }, initials(name));
+  let hue = 0;
+  for (const ch of group) hue = (hue * 31 + ch.codePointAt(0)) % 360;
+  const style = group ? `--group-hue:${hue}` : null;
+  return src ? h("img", { class: "avatar", src, alt: "", style }) : h("span", { class: "avatar", style }, initials(name));
 }
 
 /** Confirmation dialog. With `typeWord`, the user must type that word to confirm. Resolves to true/false. */

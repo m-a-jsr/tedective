@@ -100,6 +100,7 @@ export function renderHome(root, app) {
         h("a", { class: "button", href: "#/sbirka" }, icon("cards"), "Sbírka"),
         h("a", { class: "button", href: "#/cisla" }, icon("star"), "Čísla"),
         h("a", { class: "button", href: "#/vyzvy" }, icon(app.level.level >= CHALLENGES_FROM ? "trophy" : "lock"), "Výzvy"),
+        h("a", { class: "button", href: "#/vzhled" }, icon("palette"), "Vzhled"),
         h("a", { class: "button", href: "#/statistiky" }, icon("chart"), "Statistiky")),
       sections, own), bookBar);
   document.body.classList.remove("selecting");

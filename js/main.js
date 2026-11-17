@@ -6,6 +6,8 @@ import { Sync } from "./data/sync.js";
 import { resolveConflicts } from "./ui/conflicts.js";
 import { h, toast } from "./ui/dom.js";
 import { CHALLENGES, isActive, levelOf, solveEvent } from "./game/progression.js";
+import { renderAppearance } from "./ui/appearance.js";
+import { applyLook } from "./ui/look.js";
 import { renderCast } from "./ui/cast.js";
 import { renderChallenges } from "./ui/challenges.js";
 import { renderStats } from "./ui/stats.js";
@@ -63,6 +65,11 @@ const app = {
   },
   get xp() { return this.history.reduce((n, e) => n + (e.xp ?? 0), 0); },
   get level() { return levelOf(this.xp); },
+  look: {},              // chosen look of this profile (look/<profile>)
+  async loadLook() {
+    this.look = (await store.get(`look/${this.profile}`)) ?? {};
+    await applyLook(this);
+  },
   async loadHistory() {
     this.history = (await store.entries(`xp/${this.profile}/`)).map(([, v]) => v).sort((a, b) => a.at - b.at);
     this.done = new Set((await store.entries(`done/${this.profile}/`)).map(([k]) => k.split("/").pop()));
@@ -77,6 +84,7 @@ const app = {
     const event = solveEvent(p, data, replay);
     await this.addEvent(replay ? `${p.id}-${Date.now().toString(36)}` : `${p.id}-1`, event);
     const challenges = await this.evaluate();
+    if (!quiet && (this.level.level !== levelBefore || challenges.length)) await applyLook(this);
     return quiet ? null : { event, challenges, levelBefore, levelAfter: this.level.level };
   },
   /** Facts the challenges are checked against. */
@@ -158,6 +166,7 @@ const app = {
     await this.loadProgress();
     await this.loadHistory();
     await this.backfill();
+    await this.loadLook();
   },
   /** Delete a profile with all its progress (the last one cannot go). */
   async deleteProfile(id) {
@@ -191,6 +200,7 @@ function route() {
   else if (location.hash === "#/nova") leave = renderGenerator(root, app);
   else if (location.hash === "#/sbirka") renderCollection(root, app);
   else if (location.hash === "#/statistiky") renderStats(root, app);
+  else if (location.hash === "#/vzhled") renderAppearance(root, app);
   else if (location.hash.startsWith("#/vyzvy")) renderChallenges(root, app);
   else if (location.hash === "#/cisla") renderNumbers(root, app);
   else renderHome(root, app);
@@ -209,6 +219,7 @@ async function start() {
       await app.loadProgress();
       await app.loadGenerated();
       await app.loadHistory();
+      await app.loadLook();
       if (document.body.dataset.screen === "menu" && !["#/nastaveni", "#/postavy"].includes(location.hash)) route();
     },
   });
@@ -231,6 +242,7 @@ async function start() {
   await app.loadGenerated();
   await app.loadHistory();
   await app.backfill();
+  await app.loadLook();
   window.addEventListener("hashchange", route);
   window.addEventListener("pagehide", () => leave?.());
   route();

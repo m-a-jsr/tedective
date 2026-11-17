@@ -47,7 +47,7 @@ export function renderCast(root, app) {
         && (!q || plain([c.name, c.group, ...c.quotes].join(" ")).includes(q)))
         .sort((a, b) => czechCompare(a.name, b.name));
       fill(list, shown.length ? shown.map(c => h("article", { class: "panel person" },
-        avatar(c.name, photos),
+        avatar(c.name, photos, c.group),
         h("div", {},
           h("h3", {}, c.name, h("span", { class: "group" }, c.group)),
           rules(c).map(r => h("p", { class: "rule" }, r)),

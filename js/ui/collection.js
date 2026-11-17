@@ -42,7 +42,7 @@ export function renderCollection(root, app) {
   const open = c => {
     const got = byName.get(c.name) ?? new Set();
     fill(detail,
-      h("div", { class: "who-row" }, avatar(c.name, photos), h("h2", {}, c.name, h("span", { class: "group" }, c.group))),
+      h("div", { class: "who-row" }, avatar(c.name, photos, c.group), h("h2", {}, c.name, h("span", { class: "group" }, c.group))),
       h("ul", { class: "own-quotes" }, c.quotes.map(q => got.has(q)
         ? h("li", {}, `„${q}“`)
         : h("li", { class: "locked" }, icon("lock", 14), " zatím neviděná"))));
@@ -53,7 +53,7 @@ export function renderCollection(root, app) {
   const tiles = withOwn.map(c => {
     const n = byName.get(c.name)?.size ?? 0;
     return h("button", { class: `tile ${n === c.quotes.length ? "full" : n ? "some" : ""}`, onclick: () => open(c) },
-      avatar(c.name, photos), h("span", { class: "name" }, c.name), h("span", { class: "count" }, `${n}/${c.quotes.length}`));
+      avatar(c.name, photos, c.group), h("span", { class: "name" }, c.name), h("span", { class: "count" }, `${n}/${c.quotes.length}`));
   });
 
   const seenGeneral = quotes.filter(q => general.has(q.text));
