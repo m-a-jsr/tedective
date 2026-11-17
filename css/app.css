@@ -274,3 +274,45 @@ button.big { padding: 12px; font-size: 16px; }
 .progress[hidden] { display: none; }
 .progress { display: grid; gap: 8px; justify-items: start; }
 .locked-panel { display: grid; gap: 6px; justify-items: center; text-align: center; }
+
+/* level, statistics, challenges */
+.level-badge { display: inline-flex; flex-direction: column; align-items: stretch; gap: 3px; text-decoration: none; min-width: 52px; }
+.level-badge .lv { font-size: 13px; font-weight: 700; text-align: center; color: var(--accent); }
+.level-badge .xpbar { height: 4px; border-radius: 2px; background: rgba(127, 127, 127, 0.2); overflow: hidden; }
+.level-badge .xpbar span { display: block; height: 100%; background: var(--accent); }
+.level-badge .emblem { align-self: center; display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 4px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6d0, #d9a93a); color: #4a3200; font-weight: 800; font-size: 13px; box-shadow: 0 0 0 2px #b8862a; }
+.level-badge.big { min-width: 140px; }
+.level-badge.big .lv { font-size: 26px; }
+.level-badge.big .emblem { min-width: 64px; height: 64px; font-size: 26px; }
+.level-badge.big .xpbar { height: 8px; border-radius: 4px; }
+.stats, .challenges { max-width: 640px; margin: 0 auto; padding: 12px 16px 40px; display: grid; gap: 10px; }
+.stats h2 { margin: 0 0 8px; font-size: 16px; }
+.stats dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; margin: 0; }
+.stats dt { color: var(--muted); }
+.stats dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.level-panel { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.level-panel p { margin: 0; }
+.tabs.scroll { overflow-x: auto; padding-bottom: 4px; }
+.tabs.scroll button { white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.tabs .n { font-size: 12px; opacity: .75; }
+.tabs button.closed { opacity: .5; }
+.challenge-list ul { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
+.challenge-list > .note { margin: 0 0 8px; }
+.challenge .head { display: flex; gap: 8px; align-items: center; }
+.challenge .dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); flex: none; }
+.challenge.done { border-color: var(--good-line); }
+.challenge.done .head { color: var(--good-text); }
+.challenge.locked { opacity: .6; }
+.challenge .reward { margin: 4px 0; font-size: 14px; color: var(--muted); }
+.challenge .note { margin: 0; font-size: 13px; }
+.meter { position: relative; height: 18px; border-radius: 9px; background: rgba(127, 127, 127, 0.15); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--good-line); opacity: .45; }
+.meter em { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 12px; }
+.big-reward { display: flex; gap: 10px; align-items: flex-start; }
+.big-reward p { margin: 2px 0 0; color: var(--muted); }
+.big-reward.done { border-color: var(--good-line); background: var(--good); }
+.xp-gain { font-size: 20px; font-weight: 700; color: var(--accent); margin: 0 0 8px; }
+.xp-gain small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.level-up { font-weight: 700; color: var(--good-line); margin: 0 0 8px; }
+#toast.good { background: var(--good-line); color: #fff; }

@@ -9,7 +9,7 @@ export function h(tag, attrs = {}, ...children) {
     else if (k === "html") el.innerHTML = v;
     else el.setAttribute(k, v === true ? "" : v);
   }
-  for (const c of children.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : document.createTextNode(c));
+  for (const c of children.flat(Infinity)) if (c != null && c !== false) el.append(c instanceof Node ? c : document.createTextNode(c));
   return el;
 }
 
@@ -36,6 +36,7 @@ const PATHS = {
   cloudCheck: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.1 9.6 4.2 4.2 0 0 0 7 18zM9.5 13.5l2 2 3.5-4",
   cloudOff: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.1 9.6 4.2 4.2 0 0 0 7 18zM4 4l16 16",
   alert: "M12 4l9 16H3zM12 10v4M12 17h.01",
+  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   plus: "M12 5v14M5 12h14",
   cards: "M8 4h11v15H8zM5 7v13h11",
   users: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",

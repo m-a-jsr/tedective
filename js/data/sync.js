@@ -9,6 +9,8 @@ import * as store from "./store.js";
 const STATE_FILE = "state/zaznamy.json";
 const DELAY = 4000;              // push this long after the last change
 
+const EVENT = /^(xp|done)\//;
+
 export const stamp = r => (r ? `${r.updatedAt}:${r.device}` : null);
 
 /** Three-way merge of { key: record } maps against base { key: stamp }.
@@ -21,6 +23,13 @@ export function merge(local, remote, base) {
     const localChanged = stamp(L) !== B, remoteChanged = stamp(R) !== B;
     if (!remoteChanged) { if (L) merged[key] = L; }
     else if (!localChanged) { if (R) { merged[key] = R; toLocal.push(key); } }
+    else if (EVENT.test(key) && L && R && !L.deleted && !R.deleted) {
+      // XP and challenge records never change after they are written; the same one written on two
+      // devices (e.g. the first solve of a puzzle) is the same fact, so keep the older copy silently
+      const keepLocal = L.updatedAt <= R.updatedAt;
+      merged[key] = keepLocal ? L : R;
+      if (!keepLocal) toLocal.push(key);
+    }
     else conflicts.push({ key, local: L, remote: R });
   }
   return { merged, toLocal, conflicts };

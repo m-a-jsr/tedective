@@ -1,6 +1,7 @@
 // Generator screen (plan 3.7): new puzzles from the character bank, generated in a web worker.
 // Locked until all book puzzles are solved (level 17 joins as a second way in with the XP step).
 
+import { GENERATOR_LEVEL } from "../game/progression.js";
 import { THEMES, czechCompare, customTheme } from "../logic/czech.js";
 import { fill, h, icon, toast } from "./dom.js";
 
@@ -27,11 +28,11 @@ export function decodeCode(code) {
   } catch { return null; }
 }
 
-/** Unlocked once every book puzzle is solved by this profile (later also by level 17). */
+/** Unlocked at level 17 or once every book puzzle is solved by this profile, whichever comes first. */
 export function generatorUnlocked(app) {
   const book = app.content.puzzles;
   const solved = book.filter(p => app.progress[p.id]?.solvedAt).length;
-  return { open: solved === book.length, solved, total: book.length };
+  return { open: solved === book.length || app.level.level >= GENERATOR_LEVEL, solved, total: book.length };
 }
 
 export function renderGenerator(root, app) {
@@ -42,8 +43,8 @@ export function renderGenerator(root, app) {
   if (!lock.open) {
     root.replaceChildren(header, h("main", { class: "generator" }, h("section", { class: "panel locked-panel" },
       icon("lock", 28), h("h2", {}, "Zatím zamčeno"),
-      h("p", {}, "Tvorba vlastních hádanek se odemkne po vyřešení všech hádanek z knihy (nebo na levelu 17, až přibudou levely)."),
-      h("p", { class: "note" }, `Vyřešeno ${lock.solved}/${lock.total}.`))));
+      h("p", {}, `Tvorba vlastních hádanek se odemkne na levelu ${GENERATOR_LEVEL}, nebo po vyřešení všech hádanek z knihy – podle toho, co přijde dřív.`),
+      h("p", { class: "note" }, `Level ${app.level.level}/${GENERATOR_LEVEL} · vyřešeno ${lock.solved}/${lock.total}.`))));
     return;
   }
 

@@ -3,7 +3,9 @@
 import { SECTIONS } from "../data/content.js";
 import { Session } from "../game/session.js";
 import { askDialog, fill, h, icon, toast } from "./dom.js";
+import { CHALLENGES_FROM } from "../game/progression.js";
 import { generatorUnlocked } from "./generator.js";
+import { levelBadge } from "./stats.js";
 import { SYNC_TEXT } from "./settings.js";
 
 export function renderHome(root, app) {
@@ -85,6 +87,7 @@ export function renderHome(root, app) {
   root.replaceChildren(
     h("header", { class: "bar" },
       h("h1", {}, "Tedective", h("small", { class: "who" }, app.profiles[app.profile]?.name)),
+      levelBadge(app),
       h("div", { class: "jump" }, jump, h("button", { onclick: go }, "Hrát")),
       h("button", { class: "book-btn", title: "Označit hádanky z knihy", "aria-label": "Označit hádanky z knihy",
         onclick: () => toggleSelect(!selecting()) }, icon("book")),
@@ -95,7 +98,9 @@ export function renderHome(root, app) {
         h("a", { class: "button", href: "#/nova" }, icon(generatorUnlocked(app).open ? "plus" : "lock"), "Nová hádanka"),
         h("a", { class: "button", href: "#/postavy" }, icon("users"), "Postavy a hlášky"),
         h("a", { class: "button", href: "#/sbirka" }, icon("cards"), "Sbírka"),
-        h("a", { class: "button", href: "#/cisla" }, icon("star"), "Čísla")),
+        h("a", { class: "button", href: "#/cisla" }, icon("star"), "Čísla"),
+        h("a", { class: "button", href: "#/vyzvy" }, icon(app.level.level >= CHALLENGES_FROM ? "trophy" : "lock"), "Výzvy"),
+        h("a", { class: "button", href: "#/statistiky" }, icon("chart"), "Statistiky")),
       sections, own), bookBar);
   document.body.classList.remove("selecting");
 }

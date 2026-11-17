@@ -13,7 +13,13 @@ export function renderGame(root, app, puzzle, opts = {}) {
   let hint = null;       // { statementCells, cell, stage }
   let picked = null;     // cell waiting for a verdict
 
-  const save = () => app.saveProgress(puzzle.id, s.save());
+  let award = null;      // XP and challenges from solving it just now
+  const save = () => app.saveProgress(puzzle.id, s.save()).then(res => {
+    if (!res) return;
+    award = res;
+    announce(res);
+    draw();
+  });
   const theme = puzzle.theme;
   const word = v => capitalize(words(theme, v).sg);
   const fresh = () => s.known.size === 1 && !s.mistakes && !s.fromBook;
@@ -208,13 +214,21 @@ export function renderGame(root, app, puzzle, opts = {}) {
     app.go("#/");
   }
 
+  function announce(res) {
+    if (res.levelAfter > res.levelBefore) toast(`Level ${res.levelAfter}!`, "good");
+    res.challenges.forEach((ch, i) => setTimeout(() => toast(`Výzva splněna: ${ch.text}`, "good"), 2800 * (i + 1)));
+  }
+
   function showSummary() {
+    const ev = award?.event ?? [...app.history].reverse().find(e => e.kind === "solve" && e.puzzle === puzzle.id);
     fill(summary, 
       h("h2", {}, icon("check"), s.solvedInBook ? "Vyřešeno v knize" : "Vyřešeno"),
       s.solvedInBook ? null : h("dl", {},
         h("dt", {}, "Chyby"), h("dd", {}, s.mistakes),
         h("dt", {}, "Nápovědy"), h("dd", {}, s.hints[0] + s.hints[1]),
         h("dt", {}, s.fromBook ? "Čas v aplikaci" : "Čas"), h("dd", {}, formatTime(s.elapsed))),
+      ev ? h("p", { class: "xp-gain" }, `+${ev.xp} XP`, ev.replay ? h("small", {}, " (opakované vyřešení, 25 %)") : null) : null,
+      award && award.levelAfter > award.levelBefore ? h("p", { class: "level-up" }, `Nový level ${award.levelAfter}!`) : null,
       s.fromBook ? h("p", { class: "note" }, `Navázáno na knihu${s.bookHint ? ", s nápovědou z knihy" : ""}. Do výzev na čas se nepočítá.`) : null,
       puzzle.number != null ? h("p", { class: "note" }, "Číslo z ★ karty si zapiš.") : null,
       puzzle.book ? null : h("a", { class: "button", href: "#/nova" }, "Další nová hádanka"),

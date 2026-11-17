@@ -5,8 +5,11 @@ import * as store from "./data/store.js";
 import { Sync } from "./data/sync.js";
 import { resolveConflicts } from "./ui/conflicts.js";
 import { h, toast } from "./ui/dom.js";
+import { CHALLENGES, isActive, levelOf, solveEvent } from "./game/progression.js";
 import { renderCast } from "./ui/cast.js";
-import { renderCollection, renderNumbers } from "./ui/collection.js";
+import { renderChallenges } from "./ui/challenges.js";
+import { renderStats } from "./ui/stats.js";
+import { renderCollection, renderNumbers, seenQuotes } from "./ui/collection.js";
 import { renderGame } from "./ui/game.js";
 import { renderGenerator } from "./ui/generator.js";
 import { renderHome } from "./ui/home.js";
@@ -46,9 +49,79 @@ const app = {
     this.generated = this.generated.filter(p => p.id !== id);
   },
   go(hash) { location.hash = hash; },
+  history: [],            // solve and challenge events of this profile (xp/<profile>/…), oldest first
+  done: new Set(),        // completed challenge ids (done/<profile>/…)
+  /** Save a puzzle's progress; when it has just become solved, award XP and check the challenges.
+   *  Returns { event, challenges, levelBefore, levelAfter } then, else null. */
   async saveProgress(id, data) {
+    const wasSolved = !!this.progress[id]?.solvedAt;
     this.progress[id] = data;
     await store.put(`progress/${this.profile}/${id}`, data);
+    if (wasSolved || !data.solvedAt) return null;
+    const p = this.allPuzzles().find(x => x.id === id);
+    return p ? this.award(p, data) : null;
+  },
+  get xp() { return this.history.reduce((n, e) => n + (e.xp ?? 0), 0); },
+  get level() { return levelOf(this.xp); },
+  async loadHistory() {
+    this.history = (await store.entries(`xp/${this.profile}/`)).map(([, v]) => v).sort((a, b) => a.at - b.at);
+    this.done = new Set((await store.entries(`done/${this.profile}/`)).map(([k]) => k.split("/").pop()));
+  },
+  async addEvent(key, event) {
+    const rec = await store.put(`xp/${this.profile}/${key}`, event);
+    this.history.push(rec);
+  },
+  async award(p, data, quiet = false) {
+    const levelBefore = this.level.level;
+    const replay = this.history.some(e => e.kind === "solve" && e.puzzle === p.id);
+    const event = solveEvent(p, data, replay);
+    await this.addEvent(replay ? `${p.id}-${Date.now().toString(36)}` : `${p.id}-1`, event);
+    const challenges = await this.evaluate();
+    return quiet ? null : { event, challenges, levelBefore, levelAfter: this.level.level };
+  },
+  /** Facts the challenges are checked against. */
+  challengeContext() {
+    const { byName, general } = seenQuotes(this);
+    const cast = this.content.cast;
+    const groups = {};
+    for (const c of cast) if (c.quotes.length) {
+      const g = (groups[c.group] ??= { have: 0, need: 0 });
+      g.need += c.quotes.length;
+      g.have += byName.get(c.name)?.size ?? 0;
+    }
+    const bestGroup = Object.values(groups).sort((a, b) => b.have / b.need - a.have / a.need || a.need - b.need)[0] ?? { have: 0, need: 1 };
+    const met = new Set();
+    for (const p of this.allPuzzles()) if (this.progress[p.id]?.solvedAt) p.names.forEach(n => met.add(n));
+    return {
+      solves: this.history.filter(e => e.kind === "solve"), progress: this.progress, book: this.content.puzzles,
+      quotesSeen: [...byName.values()].reduce((n, s) => n + s.size, 0) + general.size, bestGroup,
+      met: cast.filter(c => met.has(c.name)).length, castSize: cast.length, done: this.done,
+    };
+  },
+  /** Complete every active challenge whose condition holds (repeatedly: a reward can raise the level). Returns the new ones. */
+  async evaluate() {
+    const out = [];
+    for (let round = 0; round < 5; round++) {
+      const ctx = this.challengeContext(), level = this.level.level, fresh = [];
+      for (const ch of CHALLENGES) {
+        if (this.done.has(ch.id) || !isActive(ch, level) || !ch.check(ctx).done) continue;
+        this.done.add(ch.id);
+        await store.put(`done/${this.profile}/${ch.id}`, { at: Date.now() });
+        if (ch.xp) await this.addEvent(`ch-${ch.id}`, { kind: "challenge", id: ch.id, xp: ch.xp, at: Date.now() });
+        fresh.push(ch);
+      }
+      out.push(...fresh);
+      if (!fresh.length) break;
+    }
+    return out;
+  },
+  /** Puzzles solved before XP existed (or solved on a device that has not synced yet) get their XP once. */
+  async backfill() {
+    for (const p of this.allPuzzles()) {
+      const r = this.progress[p.id];
+      if (r?.solvedAt && !this.history.some(e => e.kind === "solve" && e.puzzle === p.id)) await this.award(p, r, true);
+    }
+    await this.evaluate();
   },
   // reset removes a puzzle's progress and its per-puzzle statistics; XP, levels and rewards live elsewhere
   async resetProgress(id) {
@@ -83,10 +156,12 @@ const app = {
     this.profile = id;
     await store.setCfg("profile", id);
     await this.loadProgress();
+    await this.loadHistory();
+    await this.backfill();
   },
   /** Delete a profile with all its progress (the last one cannot go). */
   async deleteProfile(id) {
-    for (const [key] of await store.entries(`progress/${id}/`)) await store.del(key);
+    for (const pre of ["progress", "xp", "done"]) for (const [key] of await store.entries(`${pre}/${id}/`)) await store.del(key);
     await store.del(`profiles/${id}`);
     delete this.profiles[id];
     if (this.profile === id) await this.switchProfile(Object.keys(this.profiles).sort()[0]);
@@ -115,6 +190,8 @@ function route() {
   else if (location.hash === "#/postavy") renderCast(root, app);
   else if (location.hash === "#/nova") leave = renderGenerator(root, app);
   else if (location.hash === "#/sbirka") renderCollection(root, app);
+  else if (location.hash === "#/statistiky") renderStats(root, app);
+  else if (location.hash.startsWith("#/vyzvy")) renderChallenges(root, app);
   else if (location.hash === "#/cisla") renderNumbers(root, app);
   else renderHome(root, app);
   window.scrollTo(0, 0);
@@ -131,6 +208,7 @@ async function start() {
       await app.loadProfiles();
       await app.loadProgress();
       await app.loadGenerated();
+      await app.loadHistory();
       if (document.body.dataset.screen === "menu" && !["#/nastaveni", "#/postavy"].includes(location.hash)) route();
     },
   });
@@ -151,6 +229,8 @@ async function start() {
   await app.loadProfiles();
   await app.loadProgress();
   await app.loadGenerated();
+  await app.loadHistory();
+  await app.backfill();
   window.addEventListener("hashchange", route);
   window.addEventListener("pagehide", () => leave?.());
   route();
