@@ -27,6 +27,27 @@ export const THEMES = {
   },
 };
 
+/** Plural forms of a Czech adjective in masculine singular (-ý hard, -í soft), or null if it is neither. */
+export function adjForms(word) {
+  const w = word.trim().toLowerCase();
+  if (!/^[a-záčďéěíňóřšťúůýž]+[ýí]$/.test(w)) return null;
+  if (w.endsWith("í")) return adj(w, w, `${w.slice(0, -1)}ích`, w);
+  const stem = w.slice(0, -1);
+  const soft = [["chý", "ší"], ["cký", "čtí"], ["ský", "ští"], ["ký", "cí"], ["hý", "zí"], ["rý", "ří"], ["ý", "í"]];
+  const [end, rep] = soft.find(([e]) => w.endsWith(e));
+  return adj(w, w.slice(0, -end.length) + rep, `${stem}ých`, `${stem}é`);
+}
+
+/** A theme from two adjectives (the marked state first), or null if one of them is not usable. */
+export function customTheme(marked, clear) {
+  const m = adjForms(marked), c = adjForms(clear);
+  if (!m || !c || m.sg === c.sg) return null;
+  return { key: "vlastni", title: `${m.sg.charAt(0).toUpperCase()}${m.sg.slice(1)}, nebo ${c.sg}?`, marked: m, clear: c, custom: [m.sg, c.sg] };
+}
+
+/** Theme from its stored form: a key of THEMES or [marked, clear] adjectives. */
+export const themeOf = t => (Array.isArray(t) ? customTheme(t[0], t[1]) : THEMES[t]);
+
 export const words = (theme, state) => (state ? theme.marked : theme.clear);
 
 /** 'je právě 1 mastný' / 'jsou právě 2 mastní' / 'je právě 5 mastných' / 'není žádný mastný'. */

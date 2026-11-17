@@ -3,6 +3,7 @@
 import { SECTIONS } from "../data/content.js";
 import { Session } from "../game/session.js";
 import { askDialog, fill, h, icon, toast } from "./dom.js";
+import { generatorUnlocked } from "./generator.js";
 import { SYNC_TEXT } from "./settings.js";
 
 export function renderHome(root, app) {
@@ -38,6 +39,7 @@ export function renderHome(root, app) {
   const onPick = (e, p, a) => {
     if (!selecting()) return;
     e.preventDefault();
+    if (!p.book) return toast("Vlastní hádanky nejsou v knize.");
     if (app.progress[p.id]?.solvedAt) return toast("Tahle je už vyřešená.");
     if (picked.has(p)) picked.delete(p); else picked.add(p);
     a.classList.toggle("picked", picked.has(p));
@@ -74,6 +76,12 @@ export function renderHome(root, app) {
       h("ul", { class: "puzzles" }, items.map(p => puzzleRow(p, app, onPick))));
   });
 
+  const mine = app.generated;
+  const own = mine.length ? h("section", { class: "panel section" },
+    h("h2", {}, icon("plus"), "Vlastní hádanky",
+      h("span", { class: "count" }, `${mine.filter(p => app.progress[p.id]?.solvedAt).length}/${mine.length}`)),
+    h("ul", { class: "puzzles" }, mine.map(p => puzzleRow(p, app, onPick)))) : null;
+
   root.replaceChildren(
     h("header", { class: "bar" },
       h("h1", {}, "Tedective", h("small", { class: "who" }, app.profiles[app.profile]?.name)),
@@ -84,10 +92,11 @@ export function renderHome(root, app) {
       h("a", { class: "back", href: "#/nastaveni", "aria-label": "Nastavení" }, icon("gear"))),
     h("main", { class: "home" },
       h("nav", { class: "home-nav" },
+        h("a", { class: "button", href: "#/nova" }, icon(generatorUnlocked(app).open ? "plus" : "lock"), "Nová hádanka"),
         h("a", { class: "button", href: "#/postavy" }, icon("users"), "Postavy a hlášky"),
         h("a", { class: "button", href: "#/sbirka" }, icon("cards"), "Sbírka"),
         h("a", { class: "button", href: "#/cisla" }, icon("star"), "Čísla")),
-      sections), bookBar);
+      sections, own), bookBar);
   document.body.classList.remove("selecting");
 }
 
@@ -99,7 +108,7 @@ function puzzleRow(p, app, onPick) {
   else if (pr?.known?.length > 1) state = h("span", { class: "pill doing" }, `${pr.known.length}/${p.grid.n}`);
   return h("li", {},
     h("a", { href: `#/hra/${p.id}`, onclick: e => onPick(e, p, e.currentTarget) },
-      h("span", { class: "no" }, p.no),
+      h("span", { class: "no" }, p.book ? p.no : p.title.replace("Vlastní ", "V")),
       h("span", { class: "meta" }, `${p.grid.cols}×${p.grid.rows}`, p.variant === "B" ? h("span", { class: "tag" }, "B") : null),
       state));
 }

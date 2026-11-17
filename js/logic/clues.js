@@ -222,3 +222,18 @@ export function clueFromDict(d) {
   }
   throw new Error(`unknown clue type ${d.type}`);
 }
+
+/** Inverse of clueFromDict (same field names as the Python build), for storing generated puzzles. */
+export function clueToDict(c) {
+  const G = g => ({ kind: g.kind, cells: [...g.cells], a: g.a, b: g.b, label: g.label });
+  if (c instanceof Count) return { type: "Count", g: G(c.g), state: c.state, k: c.k, at_least: c.atLeast };
+  if (c instanceof NamedIn) return { type: "NamedIn", g: G(c.g), q: c.q, state: c.state, k: c.k };
+  if (c instanceof Intersect) return { type: "Intersect", g: G(c.g), h: G(c.h), state: c.state, k: c.k, m: c.m };
+  if (c instanceof Compare) return { type: "Compare", p: c.p, q: c.q, gp: G(c.gp), gq: G(c.gq), state: c.state, op: c.op };
+  if (c instanceof Connected) return { type: "Connected", g: G(c.g), state: c.state };
+  if (c instanceof Most) return { type: "Most", g: G(c.g), others: c.others.map(G), state: c.state };
+  if (c instanceof Only) return { type: "Only", g: G(c.g), others: c.others.map(G), state: c.state, k: c.k };
+  if (c instanceof Odd) return { type: "Odd", g: G(c.g), state: c.state };
+  if (c instanceof Is) return { type: "Is", q: c.q, state: c.state };
+  throw new Error("unknown clue");
+}

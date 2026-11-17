@@ -3,7 +3,7 @@
 // kept in the device for offline play and turned into ready-to-play puzzle objects.
 
 import { clueFromDict } from "../logic/clues.js";
-import { THEMES, shownName } from "../logic/czech.js";
+import { THEMES, shownName, themeOf } from "../logic/czech.js";
 import { Grid } from "../logic/grid.js";
 import { decode } from "./codec.js";
 import * as gh from "./github.js";
@@ -28,6 +28,8 @@ export function bookPuzzle(rec) {
   return {
     id: `kniha-${rec.no}`,
     no: rec.no,
+    book: true,
+    title: `č. ${rec.no}`,
     section: rec.section,
     theme: THEMES[rec.theme],
     variant: rec.variant,
@@ -45,6 +47,20 @@ export function bookPuzzle(rec) {
     quotes: rec.cells.map(c => c.quote),
     steps: rec.steps.map(s => s.map(l => grid.cell(l))),
     levels: rec.levels,
+  };
+}
+
+/** A ready-to-play puzzle from a generated record (generated/<id>, see ui/generator.js). */
+export function generatedPuzzle(rec) {
+  const grid = new Grid(rec.cols, rec.rows);
+  const theme = themeOf(rec.theme);
+  const ctx = { grid, names: rec.names.map(shownName), theme };
+  const statements = new Map(rec.clues.map(([cell, d]) => [cell, clueFromDict(d)]));
+  return {
+    id: rec.id, no: null, book: false, title: rec.title, section: null, theme, variant: rec.variant, tier: rec.tier,
+    grid, names: rec.names, ctx, roles: rec.roles, sol: rec.sol, start: rec.start, star: rec.star, number: null,
+    statements, texts: rec.names.map((_, i) => statements.get(i)?.text(ctx, i) ?? null), quotes: rec.quotes,
+    steps: rec.steps, levels: rec.levels, created: rec.created, code: rec.code, score: rec.score, num: rec.num,
   };
 }
 

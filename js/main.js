@@ -1,6 +1,6 @@
 // App start and hash router.
 
-import { obtainContent, parseContent } from "./data/content.js";
+import { generatedPuzzle, obtainContent, parseContent } from "./data/content.js";
 import * as store from "./data/store.js";
 import { Sync } from "./data/sync.js";
 import { resolveConflicts } from "./ui/conflicts.js";
@@ -8,6 +8,7 @@ import { h, toast } from "./ui/dom.js";
 import { renderCast } from "./ui/cast.js";
 import { renderCollection, renderNumbers } from "./ui/collection.js";
 import { renderGame } from "./ui/game.js";
+import { renderGenerator } from "./ui/generator.js";
 import { renderHome } from "./ui/home.js";
 import { renderSettings } from "./ui/settings.js";
 import { renderSetup } from "./ui/setup.js";
@@ -19,6 +20,31 @@ const app = {
   sync: null,
   profile: "p1",          // id of the profile playing on this device (cfg/profile); records live under progress/<id>/
   profiles: {},           // id -> { name } (synced records profiles/<id>)
+  generated: [],          // ready-to-play generated puzzles (synced records generated/<id>, shared by all profiles)
+  allPuzzles() { return [...this.content.puzzles, ...this.generated]; },
+  async loadGenerated() {
+    this.generated = [];
+    for (const [, rec] of await store.entries("generated/")) {
+      try { this.generated.push(generatedPuzzle(rec)); } catch (e) { console.warn("bad generated puzzle", rec.id, e); }
+    }
+    this.generated.sort((a, b) => a.created - b.created);
+  },
+  async saveGenerated(rec) {
+    const num = Math.max(0, ...this.generated.map(p => p.num ?? 0)) + 1;
+    const id = `gen-${Date.now().toString(36)}`;
+    const full = { ...rec, id, num, title: `Vlastní ${num}`, created: Date.now() };
+    await store.put(`generated/${id}`, full);
+    const p = generatedPuzzle(full);
+    p.num = num;
+    this.generated.push(p);
+    return id;
+  },
+  async deleteGenerated(id) {
+    await store.del(`generated/${id}`);
+    for (const pid of Object.keys(this.profiles)) if (await store.get(`progress/${pid}/${id}`)) await store.del(`progress/${pid}/${id}`);
+    delete this.progress[id];
+    this.generated = this.generated.filter(p => p.id !== id);
+  },
   go(hash) { location.hash = hash; },
   async saveProgress(id, data) {
     this.progress[id] = data;
@@ -79,7 +105,7 @@ function route() {
   leave?.();
   leave = null;
   const m = location.hash.match(/^#\/hra\/([^?]+)(\?kniha)?$/);
-  const puzzle = m && app.content.puzzles.find(p => p.id === m[1]);
+  const puzzle = m && app.allPuzzles().find(p => p.id === m[1]);
   document.body.dataset.screen = puzzle ? "game" : "menu";
   if (puzzle) {
     leave = renderGame(root, app, puzzle, { fromBook: !!m[2] });
@@ -87,6 +113,7 @@ function route() {
   }
   else if (location.hash === "#/nastaveni") renderSettings(root, app);
   else if (location.hash === "#/postavy") renderCast(root, app);
+  else if (location.hash === "#/nova") leave = renderGenerator(root, app);
   else if (location.hash === "#/sbirka") renderCollection(root, app);
   else if (location.hash === "#/cisla") renderNumbers(root, app);
   else renderHome(root, app);
@@ -103,6 +130,7 @@ async function start() {
     onApplied: async () => {
       await app.loadProfiles();
       await app.loadProgress();
+      await app.loadGenerated();
       if (document.body.dataset.screen === "menu" && !["#/nastaveni", "#/postavy"].includes(location.hash)) route();
     },
   });
@@ -122,6 +150,7 @@ async function start() {
   app.content = parseContent(raw);
   await app.loadProfiles();
   await app.loadProgress();
+  await app.loadGenerated();
   window.addEventListener("hashchange", route);
   window.addEventListener("pagehide", () => leave?.());
   route();

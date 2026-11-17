@@ -33,7 +33,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
   root.replaceChildren(
     h("header", { class: "bar" },
       h("a", { class: "back", href: "#/", "aria-label": "Zpět na seznam" }, icon("back")),
-      h("h1", {}, `č. ${puzzle.no}`, h("small", {}, theme.title)),
+      h("h1", {}, puzzle.title, h("small", {}, theme.title)),
       mistakes),
     h("main", { class: "game" }, tools, banner, h("div", { class: "grid-wrap" }, grid), summary),
     sheet, cover);
@@ -58,8 +58,10 @@ export function renderGame(root, app, puzzle, opts = {}) {
         h("summary", { class: "tool", "aria-label": "Další" }, icon("dots")),
         h("div", { class: "menu panel" },
           item("Smazat značky", () => { s.clearMarks(); save(); draw(); }),
-          fresh() && !bookMode ? item("Mám ji rozdělanou v knize", startBook) : null,
-          !s.solved && !bookMode ? item("Vyřešeno v knize", solvedInBook) : null,
+          puzzle.book && fresh() && !bookMode ? item("Mám ji rozdělanou v knize", startBook) : null,
+          puzzle.book && !s.solved && !bookMode ? item("Vyřešeno v knize", solvedInBook) : null,
+          puzzle.code ? item("Kód hádanky", showCode) : null,
+          puzzle.book ? null : item("Smazat hádanku", onDelete),
           item("Začít znovu", onReset))));
   }
 
@@ -183,7 +185,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
   }
 
   async function onReset() {
-    const ok = await confirmDialog(`Začít hádanku ${puzzle.no} znovu?`,
+    const ok = await confirmDialog(`Začít hádanku ${puzzle.title} znovu?`,
       "Smaže se postup v této hádance a její chyby, nápovědy a čas. XP, level, výzvy a odměny zůstanou.",
       { ok: "Začít znovu" });
     if (!ok) return;
@@ -191,6 +193,19 @@ export function renderGame(root, app, puzzle, opts = {}) {
     s = new Session(puzzle, null);
     bookMode = null; hint = null; markMode = false; bookHint = null;
     draw();
+  }
+
+  async function showCode() {
+    try { await navigator.clipboard.writeText(puzzle.code); toast("Kód zkopírován."); }
+    catch { toast(puzzle.code); }
+  }
+
+  async function onDelete() {
+    const ok = await confirmDialog(`Smazat hádanku ${puzzle.title}?`,
+      "Hádanka zmizí ze seznamu vlastních hádanek na všech zařízeních a u všech profilů.", { ok: "Smazat" });
+    if (!ok) return;
+    await app.deleteGenerated(puzzle.id);
+    app.go("#/");
   }
 
   function showSummary() {
@@ -202,6 +217,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
         h("dt", {}, s.fromBook ? "Čas v aplikaci" : "Čas"), h("dd", {}, formatTime(s.elapsed))),
       s.fromBook ? h("p", { class: "note" }, `Navázáno na knihu${s.bookHint ? ", s nápovědou z knihy" : ""}. Do výzev na čas se nepočítá.`) : null,
       puzzle.number != null ? h("p", { class: "note" }, "Číslo z ★ karty si zapiš.") : null,
+      puzzle.book ? null : h("a", { class: "button", href: "#/nova" }, "Další nová hádanka"),
       h("a", { class: "button", href: "#/" }, "Zpět na seznam"));
   }
 
