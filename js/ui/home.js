@@ -76,13 +76,16 @@ export function renderHome(root, app) {
 
   root.replaceChildren(
     h("header", { class: "bar" },
-      h("h1", {}, "Tedective"),
+      h("h1", {}, "Tedective", h("small", { class: "who" }, app.profiles[app.profile]?.name)),
       h("div", { class: "jump" }, jump, h("button", { onclick: go }, "Hrát")),
       h("button", { class: "book-btn", title: "Označit hádanky z knihy", "aria-label": "Označit hádanky z knihy",
         onclick: () => toggleSelect(!selecting()) }, icon("book")),
       syncBadge(app),
       h("a", { class: "back", href: "#/nastaveni", "aria-label": "Nastavení" }, icon("gear"))),
-    h("main", { class: "home" }, sections), bookBar);
+    h("main", { class: "home" },
+      h("nav", { class: "home-nav" },
+        h("a", { class: "button", href: "#/postavy" }, icon("users"), "Postavy a hlášky")),
+      sections), bookBar);
   document.body.classList.remove("selecting");
 }
 

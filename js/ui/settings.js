@@ -1,7 +1,7 @@
-// Settings screen: sync with GitHub and reset of puzzles. Profiles come in a later step.
+// Settings screen: profiles, sync with GitHub and reset of puzzles.
 
 import * as store from "../data/store.js";
-import { confirmDialog, fill, h, icon, toast } from "./dom.js";
+import { confirmDialog, fill, h, icon, promptDialog, toast } from "./dom.js";
 import { tokenForm } from "./setup.js";
 
 export const SYNC_TEXT = {
@@ -12,12 +12,48 @@ export const SYNC_TEXT = {
 export function renderSettings(root, app) {
   const resetAll = async () => {
     const ok = await confirmDialog("Resetovat všechny hádanky?",
-      "Smaže se postup ve všech hádankách a jejich chyby, nápovědy a časy. XP, level, výzvy a odměny zůstanou.",
+      `Smaže se postup profilu „${app.profiles[app.profile].name}“ ve všech hádankách a jejich chyby, nápovědy a časy. XP, level, výzvy a odměny zůstanou.`,
       { ok: "Resetovat vše", typeWord: "RESET" });
     if (!ok) return;
     await app.resetAll();
     toast("Všechny hádanky jsou zase nové.");
   };
+
+  // profiles: each has its own progress (later also XP, challenges, look); all of them sync
+  const profiles = h("section", { class: "panel" });
+  const drawProfiles = () => {
+    const ids = Object.keys(app.profiles).sort();
+    const rename = async id => {
+      const name = await promptDialog("Přejmenovat profil", "Jméno profilu", app.profiles[id].name);
+      if (!name) return;
+      await app.saveProfile(id, { ...app.profiles[id], name });
+      drawProfiles();
+    };
+    const remove = async id => {
+      const ok = await confirmDialog(`Smazat profil „${app.profiles[id].name}“?`,
+        "Smaže se celý postup tohoto profilu na všech zařízeních.", { ok: "Smazat", typeWord: "SMAZAT" });
+      if (!ok) return;
+      await app.deleteProfile(id);
+      toast("Profil smazán.");
+      drawProfiles();
+    };
+    const add = async () => {
+      const name = await promptDialog("Nový profil", "Jméno profilu", "", "Přidat");
+      if (!name) return;
+      await app.switchProfile(await app.addProfile(name));
+      toast(`Hraje ${name}.`);
+      drawProfiles();
+    };
+    fill(profiles, h("h2", {}, "Profily"),
+      h("ul", { class: "profiles" }, ids.map(id => h("li", { class: id === app.profile ? "current" : "" },
+        h("button", { class: "who", onclick: async () => { await app.switchProfile(id); toast(`Hraje ${app.profiles[id].name}.`); drawProfiles(); } },
+          id === app.profile ? icon("check", 16) : h("span", { class: "dot" }), app.profiles[id].name),
+        h("button", { class: "small", onclick: () => rename(id) }, "Přejmenovat"),
+        ids.length > 1 ? h("button", { class: "small", onclick: () => remove(id) }, "Smazat") : null))),
+      h("button", { onclick: add }, "Přidat profil"),
+      h("p", { class: "note" }, "Každý profil má vlastní postup. Který profil hraje, si pamatuje každé zařízení zvlášť."));
+  };
+  drawProfiles();
 
   const sync = h("section", { class: "panel" });
   const drawSync = async () => {
@@ -55,6 +91,7 @@ export function renderSettings(root, app) {
       h("a", { class: "back", href: "#/", "aria-label": "Zpět" }, icon("back")),
       h("h1", {}, "Nastavení")),
     h("main", { class: "settings" },
+      profiles,
       sync,
       h("section", { class: "panel" },
         h("h2", {}, "Hádanky"),

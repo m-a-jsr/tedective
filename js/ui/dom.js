@@ -36,6 +36,8 @@ const PATHS = {
   cloudCheck: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.1 9.6 4.2 4.2 0 0 0 7 18zM9.5 13.5l2 2 3.5-4",
   cloudOff: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.1 9.6 4.2 4.2 0 0 0 7 18zM4 4l16 16",
   alert: "M12 4l9 16H3zM12 10v4M12 17h.01",
+  users: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
+  search: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5",
   gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1",
 };
 
@@ -64,6 +66,12 @@ export function formatTime(ms) {
 export function initials(name) {
   const parts = name.replace(/[„“"]/g, "").split(/\s+/).filter(Boolean);
   return (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase();
+}
+
+/** Round picture of a character: the photo if there is one, else initials. */
+export function avatar(name, photos) {
+  const src = photos?.get(name);
+  return src ? h("img", { class: "avatar", src, alt: "" }) : h("span", { class: "avatar" }, initials(name));
 }
 
 /** Confirmation dialog. With `typeWord`, the user must type that word to confirm. Resolves to true/false. */
@@ -100,6 +108,25 @@ export function askDialog(title, text, options) {
     dlg.addEventListener("cancel", e => { e.preventDefault(); close(null); });
     document.body.append(dlg);
     dlg.showModal();
+  });
+}
+
+/** Dialog asking for a short text; resolves to the trimmed text, or null when cancelled. */
+export function promptDialog(title, label, value = "", ok = "Uložit") {
+  return new Promise(resolve => {
+    const input = h("input", { "aria-label": label, value, maxlength: 30, autocomplete: "off" });
+    const dlg = h("dialog", { class: "panel dialog" },
+      h("h2", {}, title),
+      h("form", { onsubmit: e => { e.preventDefault(); if (input.value.trim()) close(input.value.trim()); } },
+        h("p", { class: "note" }, label), input,
+        h("div", { class: "actions" },
+          h("button", { type: "button", onclick: () => close(null) }, "Zrušit"),
+          h("button", { class: "primary", type: "submit" }, ok))));
+    const close = v => { dlg.close(); dlg.remove(); resolve(v); };
+    dlg.addEventListener("cancel", e => { e.preventDefault(); close(null); });
+    document.body.append(dlg);
+    dlg.showModal();
+    input.select();
   });
 }
 

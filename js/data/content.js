@@ -48,7 +48,7 @@ export function bookPuzzle(rec) {
   };
 }
 
-const FILES = ["kniha.dat", "postavy.dat", "hlasky.dat"];
+const FILES = ["kniha.dat", "postavy.dat", "hlasky.dat", "fotky.dat"];
 /** Development: served from localhost with the data folder next to the app. */
 export const DEV = ["localhost", "127.0.0.1"].includes(location.hostname);
 
@@ -89,6 +89,7 @@ export async function obtainContent({ refresh = true } = {}) {
 
 /** Ready-to-play content from the raw files. */
 export function parseContent(raw) {
-  const [kniha, postavy, hlasky] = FILES.map(f => decode(raw.files[f]));
-  return { version: raw.version, puzzles: kniha.map(bookPuzzle), cast: postavy, quotes: hlasky };
+  const [kniha, postavy, hlasky, fotky] = FILES.map(f => (raw.files[f] ? decode(raw.files[f]) : {}));
+  const photos = new Map(Object.entries(fotky).map(([name, b64]) => [name, `data:image/jpeg;base64,${b64}`]));
+  return { version: raw.version, puzzles: kniha.map(bookPuzzle), cast: postavy, quotes: hlasky, photos };
 }

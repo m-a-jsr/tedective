@@ -3,7 +3,7 @@
 
 import { Session, VERDICT } from "../game/session.js";
 import { words } from "../logic/czech.js";
-import { askDialog, capitalize, confirmDialog, fill, formatTime, h, icon, initials, toast } from "./dom.js";
+import { askDialog, avatar, capitalize, confirmDialog, fill, formatTime, h, icon, initials, toast } from "./dom.js";
 
 /** `opts.fromBook`: opened from the list as "in progress in the book", so start picking the last card. */
 export function renderGame(root, app, puzzle, opts = {}) {
@@ -75,7 +75,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
       h("span", { class: "coord" }, puzzle.grid.label(i)),
       solved && i === puzzle.star && puzzle.number != null
         ? h("span", { class: "star" }, icon("star", 14), h("span", { class: "num" }, puzzle.number)) : null,
-      h("span", { class: "avatar" }, initials(puzzle.names[i])),
+      avatar(puzzle.names[i], app.content.photos),
       h("span", { class: "name" }, puzzle.names[i]),
       h("span", { class: "role" }, puzzle.roles[i]),       // the role stays: statements about roles need it
       solved ? h("span", { class: "verdict" }, words(theme, state).sg) : null,

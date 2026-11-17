@@ -16,7 +16,8 @@ function when(ms) {
 function describe(app, key, rec) {
   if (!rec) return "nic";
   const t = when(rec.updatedAt);
-  if (rec.deleted) return `smazáno (reset), ${t}`;
+  if (rec.deleted) return `smazáno, ${t}`;
+  if (key.startsWith("profiles/")) return `„${rec.name}“, ${t}`;
   const id = key.split("/").pop();
   const p = app.content.puzzles.find(x => x.id === id);
   if (key.startsWith("progress/") && p) {
@@ -27,9 +28,12 @@ function describe(app, key, rec) {
 }
 
 function title(app, key) {
+  if (key.startsWith("profiles/")) return "Jméno profilu";
   const id = key.split("/").pop();
   const p = app.content.puzzles.find(x => x.id === id);
-  return p ? `Hádanka ${p.no}` : key;
+  if (!p) return key;
+  const owner = app.profiles[key.split("/")[1]]?.name;
+  return `Hádanka ${p.no}${owner && Object.keys(app.profiles).length > 1 ? ` (${owner})` : ""}`;
 }
 
 /** Resolves to { key: "local" | "remote" }, or null when the player postpones the decision. */
