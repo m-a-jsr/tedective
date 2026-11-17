@@ -2,7 +2,7 @@
 // gen/deploy.py fills VERSION and FILES (every file of the app); a new VERSION makes the device
 // download the new app in the background, used from the next start.
 
-const VERSION = "bb9b55efb6f5";
+const VERSION = "949964702eae";
 const FILES = ["./", "css/app.css", "img/ikona/apple-touch-180.png", "img/ikona/ikona-192.png", "img/ikona/ikona-512.png", "img/ikona/ikona-maskable-192.png", "img/ikona/ikona-maskable-512.png", "img/ikona/ikona-maskable.svg", "img/ikona/ikona.svg", "img/pozadi/D0.svg", "img/pozadi/D1.svg", "img/pozadi/D2.svg", "img/pozadi/H1.jpg", "img/pozadi/H2.jpg", "img/pozadi/H3.jpg", "img/pozadi/H4.jpg", "img/pozadi/H5.jpg", "img/pozadi/H6.jpg", "img/pozadi/K1.jpg", "img/pozadi/K2.jpg", "img/pozadi/K3.jpg", "img/pozadi/K4.jpg", "img/pozadi/LICENCE.md", "img/pozadi/M1.jpg", "img/pozadi/M10.jpg", "img/pozadi/M2.jpg", "img/pozadi/M3.jpg", "img/pozadi/M4.jpg", "img/pozadi/M5.jpg", "img/pozadi/M6.jpg", "img/pozadi/M7.jpg", "img/pozadi/M8.jpg", "img/pozadi/M9.jpg", "index.html", "js/data/codec.js", "js/data/content.js", "js/data/github.js", "js/data/store.js", "js/data/sync.js", "js/game/session.js", "js/logic/clues.js", "js/logic/czech.js", "js/logic/generate.js", "js/logic/grid.js", "js/logic/player.js", "js/logic/sat.js", "js/logic/solver.js", "js/main.js", "js/ui/cast.js", "js/ui/conflicts.js", "js/ui/dom.js", "js/ui/game.js", "js/ui/home.js", "js/ui/settings.js", "js/ui/setup.js", "manifest.webmanifest"];
 // pictures that are only unlocked later are cached when first shown, not up front
 const LAZY = /^img\/pozadi\/(?!M9\.jpg|D0\.svg)/;
