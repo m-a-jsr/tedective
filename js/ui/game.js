@@ -246,5 +246,9 @@ export function renderGame(root, app, puzzle, opts = {}) {
   draw();
   if (opts.fromBook && fresh()) startBook();
   meadow(chosen(app).zvuky === "louka");
-  return () => { meadow(false); document.removeEventListener("visibilitychange", onVisibility); save(); };   // called when leaving the screen
+  return (keepRemote = false) => {   // called when leaving the screen
+    meadow(false);
+    document.removeEventListener("visibilitychange", onVisibility);
+    if (!keepRemote) save();
+  };   // called when leaving the screen
 }

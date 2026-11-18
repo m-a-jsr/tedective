@@ -1,6 +1,6 @@
 // App start and hash router.
 
-import { generatedPuzzle, obtainContent, parseContent } from "./data/content.js";
+import { DEV, generatedPuzzle, obtainContent, parseContent } from "./data/content.js";
 import * as store from "./data/store.js";
 import { Sync } from "./data/sync.js";
 import { resolveConflicts } from "./ui/conflicts.js";
@@ -160,7 +160,10 @@ const app = {
   async loadProfiles() {
     this.profiles = Object.fromEntries((await store.entries("profiles/")).map(([k, v]) => [k.split("/").pop(), v]));
     // default profile kept only in memory until renamed, so a new device never conflicts with the synced one
-    if (!Object.keys(this.profiles).length) this.profiles = { p1: { name: "Profil 1", unsaved: true } };
+    // …and it never disappears while it has progress here, even when another device's profiles arrive first
+    const p1Record = (await store.rawEntries("profiles/p1")).some(([k]) => k === "profiles/p1");
+    if (!this.profiles.p1 && !p1Record && (!Object.keys(this.profiles).length || (await store.entries("progress/p1/")).length))
+      this.profiles = { p1: { name: "Profil 1", unsaved: true }, ...this.profiles };
     const chosen = await store.getCfg("profile");
     this.profile = this.profiles[chosen] ? chosen : Object.keys(this.profiles).sort()[0];
   },
@@ -185,6 +188,7 @@ const app = {
   /** Delete a profile with all its progress (the last one cannot go). */
   async deleteProfile(id) {
     for (const pre of ["progress", "xp", "done"]) for (const [key] of await store.entries(`${pre}/${id}/`)) await store.del(key);
+    if (await store.get(`look/${id}`)) await store.del(`look/${id}`);
     await store.del(`profiles/${id}`);
     delete this.profiles[id];
     if (this.profile === id) await this.switchProfile(Object.keys(this.profiles).sort()[0]);
@@ -199,8 +203,9 @@ const app = {
 };
 
 let leave = null;
-function route() {
-  leave?.();
+/** Show the screen for the current address. `keepRemote`: leave the open screen without saving (its data changed elsewhere). */
+function route(keepRemote = false) {
+  leave?.(keepRemote);
   leave = null;
   const m = location.hash.match(/^#\/hra\/([^?]+)(\?kniha)?$/);
   const puzzle = m && app.allPuzzles().find(p => p.id === m[1]);
@@ -228,13 +233,18 @@ function showError(err) {
 async function start() {
   app.sync = new Sync({
     resolve: conflicts => resolveConflicts(app, conflicts),
-    onApplied: async () => {
+    onApplied: async keys => {
       await app.loadProfiles();
       await app.loadProgress();
       await app.loadGenerated();
       await app.loadHistory();
       await app.loadLook();
-      if (document.body.dataset.screen === "menu" && !["#/nastaveni", "#/postavy"].includes(location.hash)) route();
+      const open = location.hash.match(/^#\/hra\/([^?]+)/)?.[1];
+      if (open && keys.some(k => k.endsWith(`/${open}`) && k.startsWith(`progress/${app.profile}/`))) {
+        route(true);
+        toast("Hádanka se změnila na jiném zařízení, načetl jsem novou verzi.");
+      } else if (document.body.dataset.screen === "menu" && !["#/nastaveni", "#/postavy", "#/vzhled"].includes(location.hash)) route();
+      app.refreshSettings?.();
     },
   });
 
@@ -270,5 +280,6 @@ async function start() {
   }
 }
 
+if (DEV) window.tedective = app;   // local development only: lets tests look inside
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js");
 start();

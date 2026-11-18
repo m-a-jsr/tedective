@@ -54,6 +54,7 @@ export function renderSettings(root, app) {
       h("p", { class: "note" }, "Každý profil má vlastní postup. Který profil hraje, si pamatuje každé zařízení zvlášť."));
   };
   drawProfiles();
+  app.refreshSettings = () => { if (document.body.contains(profiles)) drawProfiles(); };
 
   const sync = h("section", { class: "panel" });
   const drawSync = async () => {

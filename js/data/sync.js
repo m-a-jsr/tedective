@@ -49,7 +49,9 @@ export class Sync {
     this.timer = null;
     store.onChange(() => this.schedule());
     window.addEventListener("online", () => this.run());
-    document.addEventListener("visibilitychange", () => { if (document.hidden && this.timer) this.run(); });
+    // push pending changes when the app goes to the background; fetch others' changes when it comes back
+    document.addEventListener("visibilitychange", () => { if (document.hidden ? this.timer : true) this.run(); });
+    setInterval(() => { if (!document.hidden && this.status !== "conflict") this.run(); }, 60000);
   }
 
   onStatus(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
