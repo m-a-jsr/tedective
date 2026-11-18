@@ -60,7 +60,7 @@ export function generatedPuzzle(rec) {
     id: rec.id, no: null, book: false, title: rec.title, section: null, theme, variant: rec.variant, tier: rec.tier,
     grid, names: rec.names, ctx, roles: rec.roles, sol: rec.sol, start: rec.start, star: rec.star, number: null,
     statements, texts: rec.names.map((_, i) => statements.get(i)?.text(ctx, i) ?? null), quotes: rec.quotes,
-    steps: rec.steps, levels: rec.levels, created: rec.created, code: rec.code, score: rec.score, num: rec.num,
+    steps: rec.steps, levels: rec.levels, created: rec.created, code: rec.code, score: rec.score, num: rec.num, daily: rec.daily ?? null,
   };
 }
 

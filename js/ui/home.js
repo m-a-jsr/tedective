@@ -3,6 +3,8 @@
 import { SECTIONS } from "../data/content.js";
 import { Session } from "../game/session.js";
 import { askDialog, fill, h, icon, toast } from "./dom.js";
+import { FEATURES } from "../features.js";
+import { dailyStreak } from "../game/daily.js";
 import { CHALLENGES_FROM } from "../game/progression.js";
 import { generatorUnlocked } from "./generator.js";
 import { levelBadge } from "./stats.js";
@@ -95,6 +97,12 @@ export function renderHome(root, app) {
       h("a", { class: "back", href: "#/nastaveni", "aria-label": "Nastavení" }, icon("gear"))),
     h("main", { class: "home" },
       h("nav", { class: "home-nav" },
+        FEATURES.daily ? h("button", { class: "button", onclick: async e => {
+          const btn = e.currentTarget;
+          btn.disabled = true;
+          try { await app.openDaily(pr => { btn.textContent = `Sestavuji… ${pr.done}/${pr.of}`; }); }
+          catch (err) { toast(err.message, "bad"); btn.disabled = false; }
+        } }, icon("star"), `Denní hádanka${dailyStreak(app) ? ` · ${dailyStreak(app)} dní v řadě` : ""}`) : null,
         h("a", { class: "button", href: "#/nova" }, icon(generatorUnlocked(app).open ? "plus" : "lock"), "Nová hádanka"),
         h("a", { class: "button", href: "#/postavy" }, icon("users"), "Postavy a hlášky"),
         h("a", { class: "button", href: "#/sbirka" }, icon("cards"), "Sbírka"),

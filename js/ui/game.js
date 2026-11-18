@@ -1,7 +1,9 @@
 // Game screen: the grid of cards, verdicts, marks, two-stage hint, undo, reset,
 // continuing from the paper book, summary.
 
+import { FEATURES } from "../features.js";
 import { chosen, celebrate } from "./look.js";
+import { printPuzzle } from "./print.js";
 import { meadow, play } from "./sound.js";
 import { Session, VERDICT } from "../game/session.js";
 import { words } from "../logic/czech.js";
@@ -69,6 +71,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
           puzzle.book && fresh() && !bookMode ? item("Mám ji rozdělanou v knize", startBook) : null,
           puzzle.book && !s.solved && !bookMode ? item("Vyřešeno v knize", solvedInBook) : null,
           puzzle.code ? item("Kód hádanky", showCode) : null,
+          FEATURES.print ? item("Vytisknout / PDF", () => printPuzzle(puzzle)) : null,
           puzzle.book ? null : item("Smazat hádanku", onDelete),
           item("Začít znovu", onReset))));
   }

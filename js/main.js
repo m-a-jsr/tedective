@@ -6,6 +6,8 @@ import { Sync } from "./data/sync.js";
 import { resolveConflicts } from "./ui/conflicts.js";
 import { h, toast } from "./ui/dom.js";
 import { CHALLENGES, isActive, levelOf, solveEvent } from "./game/progression.js";
+import { FEATURES } from "./features.js";
+import { buildDaily, dailyTitle, dayKey } from "./game/daily.js";
 import { renderAppearance } from "./ui/appearance.js";
 import { applyLook } from "./ui/look.js";
 import { renderCast } from "./ui/cast.js";
@@ -35,14 +37,26 @@ const app = {
     this.generated.sort((a, b) => a.created - b.created);
   },
   async saveGenerated(rec) {
-    const num = Math.max(0, ...this.generated.map(p => p.num ?? 0)) + 1;
-    const id = `gen-${Date.now().toString(36)}`;
-    const full = { ...rec, id, num, title: `Vlastní ${num}`, created: Date.now() };
+    const num = rec.daily ? null : Math.max(0, ...this.generated.map(p => p.num ?? 0)) + 1;
+    const id = rec.daily ? `den-${rec.daily}` : `gen-${Date.now().toString(36)}`;   // one record per day on every device
+    const full = { ...rec, id, num, title: rec.daily ? dailyTitle(rec.daily) : `Vlastní ${num}`, created: Date.now() };
     await store.put(`generated/${id}`, full);
     const p = generatedPuzzle(full);
     p.num = num;
     this.generated.push(p);
     return id;
+  },
+  /** Today's daily puzzle: open it, or build it first (prepared, see features.js). */
+  async openDaily(onProgress) {
+    if (!FEATURES.daily) return;
+    const key = dayKey();
+    let p = this.generated.find(x => x.daily === key);
+    if (!p) {
+      const rec = await buildDaily(this, key, onProgress);
+      await this.saveGenerated({ ...rec, daily: key });
+      p = this.generated.find(x => x.daily === key);
+    }
+    this.go(`#/hra/${p.id}`);
   },
   async deleteGenerated(id) {
     await store.del(`generated/${id}`);

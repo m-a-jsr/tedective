@@ -342,3 +342,28 @@ button.big { padding: 12px; font-size: 16px; }
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatch { width: 32px; height: 32px; border-radius: 50%; padding: 0; border: 2px solid rgba(0,0,0,.15); }
 .swatch.on { box-shadow: 0 0 0 3px var(--accent); }
+
+/* printing a puzzle (js/ui/print.js) */
+#print-sheet { display: none; }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body.printing > *:not(#print-sheet) { display: none !important; }
+  body.printing::before { display: none; }
+  body.printing #print-sheet { display: block; color: #000; font: 11pt/1.35 Georgia, "Noto Serif", serif; }
+  #print-sheet h1 { font-size: 18pt; margin: 0 0 4mm; }
+  #print-sheet h1 small { font-size: 10pt; font-weight: 400; }
+  .print-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .print-grid td { position: relative; border: 0.4mm solid #333; padding: 5mm 2mm 2mm; vertical-align: top; text-align: center; height: 24mm; }
+  .print-grid td.start { background: #eee; }
+  .print-grid .c { position: absolute; top: 1mm; left: 1.5mm; font-size: 7pt; }
+  .print-grid .s { position: absolute; top: 1mm; right: 1.5mm; font-size: 9pt; }
+  .print-grid strong { display: block; font-size: 10pt; }
+  .print-grid em { display: block; font-size: 8pt; }
+  .print-grid b { display: block; font-size: 8pt; text-transform: uppercase; margin-top: 1mm; }
+  .print-grid p { font-size: 7.5pt; text-align: left; margin: 1.5mm 0 0; }
+  #print-sheet .index { margin-top: 6mm; break-inside: auto; }
+  #print-sheet .index h2 { font-size: 12pt; }
+  #print-sheet .index ol { columns: 2; column-gap: 8mm; padding-left: 0; list-style: none; font-size: 9pt; }
+  #print-sheet .index li { break-inside: avoid; margin-bottom: 2mm; }
+  #print-sheet .foot { margin-top: 6mm; font-size: 8pt; text-align: right; }
+}
