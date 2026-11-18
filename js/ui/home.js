@@ -87,7 +87,7 @@ export function renderHome(root, app) {
     h("ul", { class: "puzzles" }, mine.map(p => puzzleRow(p, app, onPick)))) : null;
 
   root.replaceChildren(
-    h("header", { class: "bar" },
+    h("header", { class: "bar home-bar" },
       h("h1", {}, "Tedective", h("small", { class: "who" }, app.profiles[app.profile]?.name)),
       levelBadge(app),
       h("div", { class: "jump" }, jump, h("button", { onclick: go }, "Hrát")),

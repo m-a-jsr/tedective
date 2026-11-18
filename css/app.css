@@ -85,7 +85,7 @@ img.avatar { object-fit: cover; padding: 0; }
 .card.hint-cell { box-shadow: 0 0 0 3px var(--doing-text); }
 .card .star { position: absolute; top: 3px; right: 5px; display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
 .card .star .num { border: 1.5px solid currentColor; border-radius: 50%; min-width: 22px; height: 22px; display: grid; place-items: center; }
-.card:not(.hidden) { animation: flip .35s ease-out; }
+.card.flip-in { animation: flip .35s ease-out; }
 @keyframes flip { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
 
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--panel); border-top: 1px solid var(--line);
@@ -367,3 +367,14 @@ button.big { padding: 12px; font-size: 16px; }
   #print-sheet .index li { break-inside: avoid; margin-bottom: 2mm; }
   #print-sheet .foot { margin-top: 6mm; font-size: 8pt; text-align: right; }
 }
+
+/* narrow phones (and big system font): the home bar wraps, the jump field goes to its own row */
+.home-bar { flex-wrap: wrap; row-gap: 8px; }
+@media (max-width: 520px) {
+  .home-bar .jump { order: 10; flex-basis: 100%; margin-left: 0; }
+  .home-bar .jump input { flex: 1; }
+  .home-bar h1 { flex: 1; min-width: 0; }
+}
+html, body { overflow-x: clip; max-width: 100%; }
+.from-code { margin-top: 14px; border-style: dashed; }
+.from-code h2 { margin: 0 0 6px; font-size: 16px; }

@@ -76,10 +76,11 @@ export function renderGame(root, app, puzzle, opts = {}) {
           item("Začít znovu", onReset))));
   }
 
+  let shown = new Set(s.known.keys());   // cards already on screen as turned: no flip animation for them
   function card(i) {
     const solved = s.known.has(i);
     const state = solved ? s.known.get(i) : null;
-    const cls = ["card", solved ? (state ? "bad" : "good") : "hidden",
+    const cls = ["card", solved ? (state ? "bad" : "good") : "hidden", solved && !shown.has(i) ? "flip-in" : "",
       !solved && s.marks.get(i) === "g" ? "mark-g" : "", !solved && s.marks.get(i) === "r" ? "mark-r" : "",
       picked === i ? "picked" : "", hint?.stage === 2 && hint.cell === i ? "hint-cell" : "",
       hint?.statementCells.includes(i) ? "hint-st" : ""].filter(Boolean).join(" ");
@@ -106,6 +107,7 @@ export function renderGame(root, app, puzzle, opts = {}) {
     if (bookMode === "fill") banner.replaceChildren(h("p", {}, "Máš v knize vyřešené ještě jiné karty? Ťukni na ně."),
       h("button", { class: "primary", onclick: () => { bookMode = null; save(); draw(); } }, "Hrát dál"));
     grid.replaceChildren(...Array.from({ length: puzzle.grid.n }, (_, i) => card(i)));
+    shown = new Set(s.known.keys());
     summary.hidden = !s.solved;
     if (s.solved) showSummary();
   }

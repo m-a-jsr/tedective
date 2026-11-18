@@ -52,16 +52,17 @@ html[data-look-tvar="vlastni"] .card { border-radius: var(--card-radius, 10px); 
 
 /* ---------- Animace otočení ---------- */
 html[data-look-animace="3d"] .grid { perspective: 700px; }
-html[data-look-animace="3d"] .card:not(.hidden) { animation: flip3d .5s cubic-bezier(.3,.7,.4,1.3); }
+html[data-look-animace="3d"] .card.flip-in { animation: flip3d .5s cubic-bezier(.3,.7,.4,1.3); }
 @keyframes flip3d { from { transform: rotateY(180deg) scale(.9); } to { transform: rotateY(0) scale(1); } }
-html[data-look-animace="rychle"] .card:not(.hidden) { animation-duration: .15s; }
-html[data-look-animace="stred"] .card:not(.hidden) { animation: squeeze .35s ease-out; }
+html[data-look-animace="rychle"] .card.flip-in { animation-duration: .15s; }
+html[data-look-animace="stred"] .card.flip-in { animation: squeeze .35s ease-out; }
 @keyframes squeeze { from { transform: scaleX(0); } 60% { transform: scaleX(1.06); } to { transform: scaleX(1); } }
-html[data-look-animace="listky"] .card:not(.hidden)::before { content: "🍃 🌸 🍃"; position: absolute; left: 0; right: 0; top: 30%;
+html[data-look-animace="listky"] .card.flip-in::before { content: "🍃 🌸 🍃"; position: absolute; left: 0; right: 0; top: 30%;
   font-size: 14px; pointer-events: none; animation: petals 1.1s ease-in forwards; }
 @keyframes petals { from { opacity: 1; transform: translateY(0) rotate(0); letter-spacing: 0; } to { opacity: 0; transform: translateY(60px) rotate(25deg); letter-spacing: 30px; } }
 html[data-look-animace="kviti"] .card:not(.hidden)::before { content: "🌼"; position: absolute; right: 4px; bottom: 2px; font-size: 14px;
-  pointer-events: none; transform-origin: bottom center; animation: grow 1.2s ease-out; }
+  pointer-events: none; transform-origin: bottom center; }
+html[data-look-animace="kviti"] .card.flip-in::before { animation: grow 1.2s ease-out; }
 @keyframes grow { from { transform: scale(0) translateY(6px); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .confetti { position: fixed; top: -10px; z-index: 40; width: 8px; height: 12px; border-radius: 2px; pointer-events: none; animation: fall 2.6s ease-in forwards; }
 @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: .6; } }
@@ -86,7 +87,8 @@ html[data-edge="bronz"] .card { box-shadow: 0 0 0 2px #b0763c, 0 0 5px rgba(176,
 html[data-edge="stribro"] .card { box-shadow: 0 0 0 2px #b9c2c9, 0 0 6px rgba(185,194,201,.8); }
 html[data-edge="zlato"] .card { box-shadow: 0 0 0 2px #d9a93a, 0 0 8px rgba(217,169,58,.7); }
 html[data-edge="diamant"] .card { box-shadow: 0 0 0 2px #bfefff, 0 0 10px rgba(140,220,255,.9), 0 0 2px 3px rgba(255,255,255,.6); animation: none; }
-html[data-edge="diamant"] .card:not(.hidden) { animation: flip .35s ease-out, shimmer 3s linear infinite .35s; }
+html[data-edge="diamant"] .card:not(.hidden) { animation: shimmer 3s linear infinite; }
+html[data-edge="diamant"] .card.flip-in { animation: flip .35s ease-out, shimmer 3s linear infinite .35s; }
 @keyframes shimmer { 50% { box-shadow: 0 0 0 2px #e6d9ff, 0 0 12px rgba(200,170,255,.9), 0 0 2px 3px rgba(255,255,255,.7); } }
 
 /* ---------- backgrounds, pause picture, emblem ---------- */

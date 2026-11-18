@@ -116,13 +116,16 @@ export function renderGenerator(root, app) {
       h("h3", {}, "Typy výpovědí"), h("div", { class: "opts" }, kindBoxes),
       h("h3", {}, "Kandidátů"),
       h("p", { class: "note" }, "Kolik hádanek se zkusí sestavit; nechá se ta nejtěžší."), candInput,
-      h("h3", {}, "Hádanka z kódu"),
+    ),
+    h("button", { class: "primary big", type: "submit" }, "Vytvořit hádanku"),
+    h("section", { class: "panel from-code" },
+      h("h2", {}, "Nebo: hádanka z kódu"),
+      h("p", { class: "note" }, "Kód nese všechna nastavení hádanky, ze které pochází. Volby výše (velikost, téma, obtížnost, postavy…) se pro ni nepoužijí – vznikne přesně tatáž hádanka."),
       h("div", { class: "row" }, codeInput, h("button", { type: "button", onclick: () => {
         const p = decodeCode(codeInput.value);
         if (!p) return toast("Kód nejde přečíst.");
         run(p);
       } }, "Vytvořit z kódu"))),
-    h("button", { class: "primary big", type: "submit" }, "Vytvořit hádanku"),
     progress);
 
   function params() {
