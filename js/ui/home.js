@@ -7,6 +7,7 @@ import { FEATURES } from "../features.js";
 import { dailyStreak } from "../game/daily.js";
 import { CHALLENGES_FROM } from "../game/progression.js";
 import { generatorUnlocked } from "./generator.js";
+import { unreadCount } from "./news.js";
 import { levelBadge } from "./stats.js";
 import { SYNC_TEXT } from "./settings.js";
 
@@ -109,7 +110,8 @@ export function renderHome(root, app) {
         h("a", { class: "button", href: "#/cisla" }, icon("star"), "Čísla"),
         h("a", { class: "button", href: "#/vyzvy" }, icon(app.level.level >= CHALLENGES_FROM ? "trophy" : "lock"), "Výzvy"),
         h("a", { class: "button", href: "#/vzhled" }, icon("palette"), "Vzhled"),
-        h("a", { class: "button", href: "#/statistiky" }, icon("chart"), "Statistiky")),
+        h("a", { class: "button", href: "#/statistiky" }, icon("chart"), "Statistiky"),
+        newsButton(app)),
       sections, own), bookBar);
   document.body.classList.remove("selecting");
 }
@@ -144,5 +146,13 @@ function syncBadge(app) {
   let drawn = false;
   const stop = app.sync.onStatus(draw);
   draw(app.sync.status);
+  return el;
+}
+
+/** "Novinky" with the number of unread items (counted after the screen is drawn). */
+function newsButton(app) {
+  const count = h("span", { class: "news-count", hidden: true });
+  const el = h("a", { class: "button news-btn", href: "#/novinky" }, icon("bell"), "Novinky", count);
+  unreadCount(app).then(n => { count.hidden = !n; count.textContent = n; }).catch(() => {});
   return el;
 }

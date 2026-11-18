@@ -12,6 +12,7 @@ import { renderAppearance } from "./ui/appearance.js";
 import { applyLook } from "./ui/look.js";
 import { renderCast } from "./ui/cast.js";
 import { renderChallenges } from "./ui/challenges.js";
+import { renderNews } from "./ui/news.js";
 import { renderStats } from "./ui/stats.js";
 import { renderCollection, renderNumbers, seenQuotes } from "./ui/collection.js";
 import { renderGame } from "./ui/game.js";
@@ -86,7 +87,9 @@ const app = {
   },
   async loadHistory() {
     this.history = (await store.entries(`xp/${this.profile}/`)).map(([, v]) => v).sort((a, b) => a.at - b.at);
-    this.done = new Set((await store.entries(`done/${this.profile}/`)).map(([k]) => k.split("/").pop()));
+    const done = (await store.entries(`done/${this.profile}/`)).map(([k, v]) => [k.split("/").pop(), v.at ?? v.updatedAt]);
+    this.done = new Set(done.map(([id]) => id));
+    this.doneAt = new Map(done);              // when each challenge was completed (Novinky)
   },
   async addEvent(key, event) {
     const rec = await store.put(`xp/${this.profile}/${key}`, event);
@@ -128,7 +131,8 @@ const app = {
       for (const ch of CHALLENGES) {
         if (this.done.has(ch.id) || !isActive(ch, level) || !ch.check(ctx).done) continue;
         this.done.add(ch.id);
-        await store.put(`done/${this.profile}/${ch.id}`, { at: Date.now() });
+        const rec = await store.put(`done/${this.profile}/${ch.id}`, { at: Date.now() });
+        this.doneAt?.set(ch.id, rec.at);
         if (ch.xp) await this.addEvent(`ch-${ch.id}`, { kind: "challenge", id: ch.id, xp: ch.xp, at: Date.now() });
         fresh.push(ch);
       }
@@ -188,7 +192,7 @@ const app = {
   /** Delete a profile with all its progress (the last one cannot go). */
   async deleteProfile(id) {
     for (const pre of ["progress", "xp", "done"]) for (const [key] of await store.entries(`${pre}/${id}/`)) await store.del(key);
-    if (await store.get(`look/${id}`)) await store.del(`look/${id}`);
+    for (const key of [`look/${id}`, `seen/${id}`]) if (await store.get(key)) await store.del(key);
     await store.del(`profiles/${id}`);
     delete this.profiles[id];
     if (this.profile === id) await this.switchProfile(Object.keys(this.profiles).sort()[0]);
@@ -219,6 +223,7 @@ function route(keepRemote = false) {
   else if (location.hash === "#/nova") leave = renderGenerator(root, app);
   else if (location.hash === "#/sbirka") renderCollection(root, app);
   else if (location.hash === "#/statistiky") renderStats(root, app);
+  else if (location.hash === "#/novinky") renderNews(root, app);
   else if (location.hash === "#/vzhled") renderAppearance(root, app);
   else if (location.hash.startsWith("#/vyzvy")) renderChallenges(root, app);
   else if (location.hash === "#/cisla") renderNumbers(root, app);

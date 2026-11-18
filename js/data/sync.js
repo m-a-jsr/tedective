@@ -30,6 +30,12 @@ export function merge(local, remote, base) {
       merged[key] = keepLocal ? L : R;
       if (!keepLocal) toLocal.push(key);
     }
+    else if (key.startsWith("seen/") && L && R) {
+      // "Novinky read up to": both devices just moved it forward, the later point wins
+      const keepLocal = (L.upto ?? 0) >= (R.upto ?? 0);
+      merged[key] = keepLocal ? L : R;
+      if (!keepLocal) toLocal.push(key);
+    }
     else conflicts.push({ key, local: L, remote: R });
   }
   return { merged, toLocal, conflicts };
